@@ -10,7 +10,6 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 
@@ -23,21 +22,9 @@ public class MoveToBackgroundPlugin implements FlutterPlugin, MethodCallHandler,
     private MethodChannel channel;
     private static Activity activity;
 
-    /**
-     * Plugin registration.
-     */
-    public static void registerWith(Registrar registrar) {
-        if (registrar.activity() != null) {
-            MoveToBackgroundPlugin.activity = registrar.activity();
-        }
-        MoveToBackgroundPlugin plugin = new MoveToBackgroundPlugin();
-        plugin.setupChannel(registrar.messenger(), registrar.context());
-    }
-
     @Override
-    @SuppressWarnings("deprecation")
     public void onAttachedToEngine(FlutterPluginBinding binding) {
-        setupChannel(binding.getFlutterEngine().getDartExecutor(), binding.getApplicationContext());
+        setupChannel(binding.getBinaryMessenger(), binding.getApplicationContext());
     }
 
     @Override
@@ -48,12 +35,13 @@ public class MoveToBackgroundPlugin implements FlutterPlugin, MethodCallHandler,
     private void setupChannel(BinaryMessenger messenger, Context context) {
         channel = new MethodChannel(messenger, CHANNEL_NAME);
         channel.setMethodCallHandler(this);
-
     }
 
     private void teardownChannel() {
-        channel.setMethodCallHandler(null);
-        channel = null;
+        if (channel != null) {
+            channel.setMethodCallHandler(null);
+            channel = null;
+        }
     }
 
     @Override
@@ -61,10 +49,11 @@ public class MoveToBackgroundPlugin implements FlutterPlugin, MethodCallHandler,
         if (call.method.equals("moveTaskToBack")) {
             if (MoveToBackgroundPlugin.activity != null) {
                 MoveToBackgroundPlugin.activity.moveTaskToBack(true);
+                result.success(true);
             } else {
                 Log.e("MoveToBackgroundPlugin", "moveTaskToBack failed: activity=null");
+                result.error("ACTIVITY_NULL", "Activity is null", null);
             }
-            result.success(true);
         } else {
             result.notImplemented();
         }
@@ -89,5 +78,4 @@ public class MoveToBackgroundPlugin implements FlutterPlugin, MethodCallHandler,
     public void onDetachedFromActivity() {
         MoveToBackgroundPlugin.activity = null;
     }
-
 }
