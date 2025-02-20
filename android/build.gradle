@@ -22,17 +22,39 @@ rootProject.allprojects {
         options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
     }
 }
+// plugins {
+//     id 'com.android.library'
+//     id 'kotlin-android' // If using Kotlin
+// }
 
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 28
+    namespace "com.sayegh.move_to_background" // Ensure this matches your package name
+    compileSdk 34 // Update to the latest stable SDK
 
     defaultConfig {
-        minSdkVersion 16
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        minSdk 21 // Increase minSdk to 21 for compatibility
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-    lintOptions {
+
+    buildFeatures {
+        buildConfig = true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
         disable 'InvalidPackage'
     }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.12.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }
